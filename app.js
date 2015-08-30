@@ -6,7 +6,18 @@ $(document).ready( function() {
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
 	});
+
+	$('.inspiration-getter').submit( function(event){
+		// zero out results if previous search has run
+		$('.results').html('');
+		// get the value of the tags the user submitted
+		var tags = $(this).find("input[name='answerers']").val();
+		getAnswered(tags);
+	});
+
+
 });
+
 
 // this function takes the question object returned by StackOverflow 
 // and creates new result to be appended to DOM
@@ -37,9 +48,32 @@ var showQuestion = function(question) {
 							'</p>' +
  							'<p>Reputation: ' + question.owner.reputation + '</p>'
 	);
-
+	console.log(question);
 	return result;
 };
+
+var showAnswer = function(answerer) {
+	
+	// clone our result template code
+	var result = $('.template .question').clone();
+	
+	// set some properties related to asker
+	var asker = result.find('.asker');
+	asker.html(
+		'<p>Name: ' + answerer.user.display_name + '</p>\n' +
+		'<p> \n' +
+			'User ID: \n' +
+	 		'<a target="_blank" href= "http://stackoverflow.com/users/' + answerer.user.user_id + '"> \n' +
+	 			answerer.user.user_id + '\n' +
+			'</a> \n' +
+		'</p>\n' +
+ 		'<p>Reputation: ' + answerer.user.reputation + '</p>\n' +
+ 		'<img src=' + answerer.user.profile_image + '">\n' 
+	);
+ 	console.log(asker.html());						  
+	return result;
+};
+
 
 
 // this function takes the results object from StackOverflow
@@ -86,6 +120,41 @@ var getUnanswered = function(tags) {
 		var errorElem = showError(error);
 		$('.search-results').append(errorElem);
 	});
+};
+
+// takes a string of semi-colon separated tags to be searched
+// for on StackOverflow
+var getAnswered = function(tag) {
+
+	//the parameters we need to passs in out request to StackOverflow's API
+	var request = {
+					site: 'StackOverflow',
+					page: '1',
+					pagesize: '10',
+					period: 'all_time'};
+
+	var result = $.ajax({
+		url: "http://api.stackexchange.com/2.2/tags/" + tag + "/top-answerers/all_time",
+		data: request,
+		dataType: "jsonp",
+		type: "GET",
+	})
+
+	.done(function(result){
+		var searchResults = showSearchResults(tag, result.items.length);
+
+		$('.search-results').html(searchResults);
+
+		$.each(result.items, function(i, item) {
+			var question = showAnswer(item);
+			$('.results').append(question);
+		});
+	})
+	.fail(function(jqXHR, error, errorThrown){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
+
 };
 
 

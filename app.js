@@ -1,13 +1,13 @@
-$(document).ready( function() {
-	$('.unanswered-getter').submit( function(event){
+$(document).ready( function() { //waits until page is fully loaded and then runs JS
+	$('.unanswered-getter').submit( function(event){ //target uanswered class, on submit funtion and passes two parameters; function and event. So event handler(.submit) is bound to the form. Every time something is submited the follwing will happen:
 		// zero out results if previous search has run
-		$('.results').html('');
+		$('.results').html(''); //not sure
 		// get the value of the tags the user submitted
 		var tags = $(this).find("input[name='tags']").val();
-		getUnanswered(tags);
+		getUnanswered(tags); //run the getUnanswered function using the tags variable
 	});
 
-	$('.inspiration-getter').submit( function(event){
+	$('.inspiration-getter').submit( function(event){// same thing to find the top-answerers
 		// zero out results if previous search has run
 		$('.results').html('');
 		// get the value of the tags the user submitted
@@ -21,7 +21,7 @@ $(document).ready( function() {
 
 // this function takes the question object returned by StackOverflow 
 // and creates new result to be appended to DOM
-var showQuestion = function(question) {
+var showQuestion = function(question) { //assigning an empty function with parameter question to variable showQuestion. How is this different from writing: function showQuestion(question) { ?
 	
 	// clone our result template code
 	var result = $('.templates .question').clone();
@@ -41,14 +41,14 @@ var showQuestion = function(question) {
 	viewed.text(question.view_count);
 
 	// set some properties related to asker
-	var asker = result.find('.asker');
+	var asker = result.find('.asker'); //search through descendants of $('.template .questions') to .asker and print:
 	asker.html('<p>Name: <a target="_blank" href=http://stackoverflow.com/users/' + question.owner.user_id + ' >' +
 													question.owner.display_name +
 												'</a>' +
 							'</p>' +
- 							'<p>Reputation: ' + question.owner.reputation + '</p>'
+ 							'<p>Reputation: ' + question.owner.reputation + '</p>' //search api for this data and print
 	);
-	console.log(question);
+	console.log(question); //console log the question. 
 	return result;
 };
 
@@ -68,7 +68,7 @@ var showAnswer = function(answerer) {
 			'</a> \n' +
 		'</p>\n' +
  		'<p>Reputation: ' + answerer.user.reputation + '</p>\n' +
- 		'<img src=' + answerer.user.profile_image + '">\n' 
+ 		'<img src="' + answerer.user.profile_image + '">\n' 
 	);
  	console.log(asker.html());						  
 	return result;
@@ -80,14 +80,14 @@ var showAnswer = function(answerer) {
 // and creates info about search results to be appended to DOM
 var showSearchResults = function(query, resultNum) {
 	var results = resultNum + ' results for <strong>' + query;
-	return results;
+	return results; //function to identify 3 of results and tag. Where is query defined?
 };
 
 // takes error string and turns it into displayable DOM element
 var showError = function(error){
 	var errorElem = $('.templates .error').clone();
 	var errorText = '<p>' + error + '</p>';
-	errorElem.append(errorText);
+	errorElem.append(errorText); 
 };
 
 // takes a string of semi-colon separated tags to be searched
@@ -99,26 +99,28 @@ var getUnanswered = function(tags) {
 								site: 'stackoverflow',
 								order: 'desc',
 								sort: 'creation'};
-	
+	//ajax request to stackOverflow's API
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/questions/unanswered",
 		data: request,
 		dataType: "jsonp",
 		type: "GET",
 		})
-	.done(function(result){
+	.done(function(result){ //success callback after ajax method returns info. 
 		var searchResults = showSearchResults(request.tagged, result.items.length);
+		//assign the searched item (tag) and # of items to variable SearchResult
 
-		$('.search-results').html(searchResults);
+		$('.search-results').html(searchResults); //prints the results of the showSearchResult function which was assigned to the searchResults variable. 
 
-		$.each(result.items, function(i, item) {
-			var question = showQuestion(item);
-			$('.results').append(question);
+		$.each(result.items, function(i, item) { //loop through each "result" object and run function i and item. 
+			var question = showQuestion(item); //assign the showQuestion function to question vaiable. Passes item parameter. Where does item come from? is item informing quesion?
+
+			$('.results').append(question); //append the results
 		});
 	})
-	.fail(function(jqXHR, error, errorThrown){
+	.fail(function(jqXHR, error, errorThrown){ //looked at api- not sure what these parametere refer to?
 		var errorElem = showError(error);
-		$('.search-results').append(errorElem);
+		$('.search-results').append(errorElem);// if error, call showError function. error message created above
 	});
 };
 
@@ -126,13 +128,14 @@ var getUnanswered = function(tags) {
 // for on StackOverflow
 var getAnswered = function(tag) {
 
-	//the parameters we need to passs in out request to StackOverflow's API
+	//the parameters we need want to access from StackOverflow's API
 	var request = {
 					site: 'StackOverflow',
 					page: '1',
 					pagesize: '10',
 					period: 'all_time'};
 
+	//ajax request 				
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/tags/" + tag + "/top-answerers/all_time",
 		data: request,
@@ -140,14 +143,14 @@ var getAnswered = function(tag) {
 		type: "GET",
 	})
 
-	.done(function(result){
-		var searchResults = showSearchResults(tag, result.items.length);
+	.done(function(result){ //success callback after ajax method returns info. Is this what give us the number? 200,300 400?
+		var searchResults = showSearchResults(tag, result.items.length); //assigning ShowSearchResults function to searchResults
 
-		$('.search-results').html(searchResults);
+		$('.search-results').html(searchResults); //print # of answerers and tag in bold
 
-		$.each(result.items, function(i, item) {
-			var question = showAnswer(item);
-			$('.results').append(question);
+		$.each(result.items, function(i, item) { //loop through each result and run function with parameters i and item. ?
+			var question = showAnswer(item); 
+			$('.results').append(question); //append the answerers
 		});
 	})
 	.fail(function(jqXHR, error, errorThrown){
